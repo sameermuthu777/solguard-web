@@ -1,0 +1,86 @@
+[
+  {
+    "url": "https://fonts.googleapis.com/css2?family=VT323&display=swap",
+    "method": "GET",
+    "headers": {
+      "accept": "text/css,*/*;q=0.1",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://api.rugcheck.xyz/public/known_accounts.json",
+    "method": "GET",
+    "headers": {
+      "accept": "*/*",
+      "origin": "https://rugcheck.xyz",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://api.rugcheck.xyz/v1/maintenance",
+    "method": "GET",
+    "headers": {
+      "accept": "*/*",
+      "origin": "https://rugcheck.xyz",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://region1.google-analytics.com/g/collect?v=2&tid=G-840DCTBM30&gtm=45je4be0v9116588601za200&_p=1732018907647&gcd=13l3l3l2l1l1&npa=1&dma_cps=syphamo&dma=1&tag_exp=101925629~102067555~102067808~102077855&cid=336582475.1732018908&ul=en-us&sr=1920x1080&uaa=&uab=&uafvl=&uamb=0&uam=&uap=&uapv=&uaw=0&frm=0&pscdl=noapi&_s=1&sid=1732018907&sct=1&seg=0&dl=https%3A%2F%2Frugcheck.xyz%2Ftokens%2FF7bjKTh1hVGPuyAaKHwrUTThS3XPSj5LY8kBegKu8Z3H&dt=RugCheck&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&tfd=393",
+    "method": "POST",
+    "headers": {
+      "accept": "*/*",
+      "origin": "https://rugcheck.xyz",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://api.rugcheck.xyz/v1/tokens/F7bjKTh1hVGPuyAaKHwrUTThS3XPSj5LY8kBegKu8Z3H/report",
+    "method": "GET",
+    "headers": {
+      "accept": "*/*",
+      "authorization": "",
+      "content-type": "application/json",
+      "origin": "https://rugcheck.xyz",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      "x-wallet-address": "null"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://api.degencdn.com/v1/nfts/F7bjKTh1hVGPuyAaKHwrUTThS3XPSj5LY8kBegKu8Z3H/image.png",
+    "method": "GET",
+    "headers": {
+      "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://api.rugcheck.xyz/v1/tokens/F7bjKTh1hVGPuyAaKHwrUTThS3XPSj5LY8kBegKu8Z3H/votes",
+    "method": "GET",
+    "headers": {
+      "accept": "*/*",
+      "authorization": "",
+      "content-type": "application/json",
+      "origin": "https://rugcheck.xyz",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      "x-wallet-address": "null"
+    },
+    "post_data": null
+  },
+  {
+    "url": "https://region1.google-analytics.com/g/collect?v=2&tid=G-840DCTBM30&gtm=45je4be0v9116588601za200&_p=1732018907647&gcd=13l3l3l2l1l1&npa=1&dma_cps=syphamo&dma=1&tag_exp=101925629~102067555~102067808~102077855&cid=336582475.1732018908&ul=en-us&sr=1920x1080&uaa=&uab=&uafvl=&uamb=0&uam=&uap=&uapv=&uaw=0&frm=0&pscdl=noapi&_eu=AEA&_s=2&sid=1732018907&sct=1&seg=0&dl=https%3A%2F%2Frugcheck.xyz%2Ftokens%2FF7bjKTh1hVGPuyAaKHwrUTThS3XPSj5LY8kBegKu8Z3H&dt=RugCheck&en=scroll&epn.percent_scrolled=90&_et=16&tfd=5412",
+    "method": "POST",
+    "headers": {
+      "accept": "*/*",
+      "origin": "https://rugcheck.xyz",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    },
+    "post_data": null
+  }
+]

@@ -1,148 +1,150 @@
 // Initialize Telegram WebApp
-const webapp = window.Telegram?.WebApp;
-if (webapp) {
-    webapp.ready();
-    webapp.expand();
-    // Add back button functionality
-    webapp.BackButton.show();
-    webapp.BackButton.onClick(() => {
-        webapp.navigate('index.html');
+document.addEventListener('DOMContentLoaded', function() {
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+    tg.MainButton.hide();
+});
+
+// Format number with commas and decimals
+function formatNumber(num, decimals = 2) {
+    if (typeof num !== 'number') return '0';
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
     });
 }
 
-// Get token address from URL parameters
-const urlParams = new URLSearchParams(window.location.search);
-const tokenAddress = urlParams.get('address');
+// Format currency
+function formatCurrency(amount) {
+    return `$${formatNumber(amount)}`;
+}
 
-async function fetchTokenData(address) {
-    try {
-        // Fetch data from Rugcheck API
-        const response = await fetch(`https://api.rugcheck.xyz/v1/tokens/${address}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
+// Update security score circle
+function updateSecurityScore(score) {
+    const scoreElement = document.getElementById('securityScore');
+    const scoreCircle = document.querySelector('.score-circle');
+    const percentage = (score / 100) * 360;
+    
+    scoreElement.textContent = Math.round(score);
+    scoreCircle.style.setProperty('--score', `${percentage}deg`);
+    
+    // Update color based on score
+    let color;
+    if (score >= 80) {
+        color = 'var(--success-color)';
+    } else if (score >= 50) {
+        color = 'var(--warning-color)';
+    } else {
+        color = 'var(--danger-color)';
+    }
+    
+    scoreCircle.style.background = `conic-gradient(${color} ${percentage}deg, transparent 0)`;
+}
+
+// Create risk factor element
+function createRiskFactor(risk) {
+    const riskElement = document.createElement('div');
+    riskElement.className = 'risk-item';
+    riskElement.innerHTML = `
+        <span class="risk-icon">⚠️</span>
+        <div class="risk-details">
+            <div class="risk-title">${risk.title}</div>
+            <div class="risk-description">${risk.description}</div>
+        </div>
+    `;
+    return riskElement;
+}
+
+// Create verification link button
+function createLinkButton(type, url) {
+    const button = document.createElement('a');
+    button.href = url;
+    button.target = '_blank';
+    button.className = 'link-button';
+    
+    const icons = {
+        x: '𝕏',
+        telegram: '📱',
+        website: '🌐',
+        github: '💻',
+        discord: '💬'
+    };
+    
+    button.innerHTML = `${icons[type] || '🔗'} ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    return button;
+}
+
+// Update UI with token data
+function updateUI(data) {
+    // Update token info
+    document.getElementById('tokenName').textContent = `${data.token_info.name} (${data.token_info.symbol})`;
+    document.getElementById('tokenAddress').textContent = data.token_info.mint;
+    
+    // Update security score
+    updateSecurityScore(data.security.security_score);
+    
+    // Update risk factors
+    const riskFactorsContainer = document.getElementById('riskFactors');
+    riskFactorsContainer.innerHTML = '';
+    
+    if (data.security.risks && data.security.risks.length > 0) {
+        data.security.risks.forEach(risk => {
+            riskFactorsContainer.appendChild(createRiskFactor(risk));
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching token data:', error);
-        return null;
-    }
-}
-
-function updateRiskScore(score) {
-    const riskScoreElement = document.getElementById('riskScore');
-    let riskClass = 'score-low';
-    let riskText = 'Low Risk';
-    
-    if (score >= 70) {
-        riskClass = 'score-high';
-        riskText = 'High Risk';
-    } else if (score >= 30) {
-        riskClass = 'score-medium';
-        riskText = 'Medium Risk';
     }
     
-    riskScoreElement.className = `risk-score ${riskClass}`;
-    riskScoreElement.textContent = `Risk Score: ${score} - ${riskText}`;
+    // Update market data
+    document.getElementById('totalLiquidity').textContent = formatCurrency(data.market_data.total_liquidity);
+    document.getElementById('lpProviders').textContent = data.market_data.lp_providers;
+    document.getElementById('totalSupply').textContent = formatNumber(data.token_info.supply, 0);
+    
+    // Update verification links
+    const verificationLinksContainer = document.getElementById('verificationLinks');
+    verificationLinksContainer.innerHTML = '';
+    
+    if (data.verification.links) {
+        Object.entries(data.verification.links).forEach(([type, url]) => {
+            verificationLinksContainer.appendChild(createLinkButton(type, url));
+        });
+    }
+    
+    // Update community votes
+    document.getElementById('upvotes').textContent = data.community.upvotes;
+    document.getElementById('downvotes').textContent = data.community.downvotes;
+    
+    // Show results and hide loading
+    document.getElementById('loadingView').style.display = 'none';
+    document.getElementById('resultsView').style.display = 'block';
 }
 
-function createRiskItem(icon, title, description) {
-    return `
-        <div class="risk-item">
-            <div class="risk-icon">${icon}</div>
-            <div class="risk-details">
-                <h4 class="risk-title">${title}</h4>
-                <p class="risk-description">${description}</p>
-            </div>
+// Handle errors
+function handleError(error) {
+    console.error('Error:', error);
+    document.getElementById('loadingView').innerHTML = `
+        <div class="error-message">
+            <h2>⚠️ Error</h2>
+            <p>${error.message || 'Failed to analyze token. Please try again.'}</p>
         </div>
     `;
 }
 
-function displayResults() {
-    try {
-        // Get data from sessionStorage
-        const data = JSON.parse(sessionStorage.getItem('tokenData'));
-        if (!data) {
-            throw new Error('No token data found');
-        }
-
-        // Hide loading view and show results
-        document.getElementById('loadingView').style.display = 'none';
-        document.getElementById('resultsView').style.display = 'block';
-        
-        // Update token info
-        const tokenInfo = data.token_info;
-        document.getElementById('tokenName').textContent = tokenInfo.name || 'Unknown Token';
-        document.getElementById('tokenAddress').textContent = tokenInfo.address;
-        
-        // Update risk score
-        const riskScore = data.risk_analysis.score;
-        updateRiskScore(riskScore ? parseInt(riskScore) : 0);
-        
-        // Update security analysis
-        const securityResults = document.getElementById('securityResults');
-        securityResults.innerHTML = '';
-        
-        if (data.security_checks) {
-            data.security_checks.forEach(check => {
-                const icon = check.status === 'passed' ? '✅' : '⚠️';
-                securityResults.innerHTML += createRiskItem(
-                    icon,
-                    check.title,
-                    check.description
-                );
-            });
-        }
-        
-        // Update contract analysis
-        const contractResults = document.getElementById('contractResults');
-        contractResults.innerHTML = '';
-        
-        if (data.contract_analysis) {
-            data.contract_analysis.forEach(item => {
-                const icon = item.risk_level === 'high' ? '🔴' : 
-                           item.risk_level === 'medium' ? '🟡' : '🟢';
-                contractResults.innerHTML += createRiskItem(
-                    icon,
-                    item.title,
-                    item.details
-                );
-            });
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        document.body.innerHTML = '<div class="error">Failed to load token analysis results</div>';
-    }
-}
-
-async function init() {
-    if (!tokenAddress) {
-        document.body.innerHTML = '<div class="error">No token address provided</div>';
-        return;
-    }
+// Initialize with data from URL parameters
+function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenData = urlParams.get('data');
     
-    try {
-        const data = await fetchTokenData(tokenAddress);
-        if (data) {
-            sessionStorage.setItem('tokenData', JSON.stringify(data));
-            displayResults();
-        } else {
-            document.body.innerHTML = '<div class="error">Failed to load token data</div>';
+    if (tokenData) {
+        try {
+            const data = JSON.parse(decodeURIComponent(tokenData));
+            updateUI(data);
+        } catch (error) {
+            handleError(error);
         }
-    } catch (error) {
-        console.error('Error:', error);
-        document.body.innerHTML = '<div class="error">An error occurred while analyzing the token</div>';
+    } else {
+        handleError(new Error('No token data provided'));
     }
 }
 
-if (!tokenAddress) {
-    document.body.innerHTML = '<div class="error">No token address provided</div>';
-} else {
-    displayResults();
-}
+// Start initialization when DOM is ready
+document.addEventListener('DOMContentLoaded', init);

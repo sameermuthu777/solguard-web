@@ -8,7 +8,7 @@ if (webapp) {
 // API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8000'
-    : window.location.protocol + '//' + window.location.hostname + ':8000'; // Replace with your actual deployed API URL
+    : `${window.location.protocol}//${window.location.hostname}:8000`; // Replace with your actual deployed API URL
 const API_TIMEOUT = 30000; // 30 seconds
 
 function showLoading() {
@@ -79,6 +79,27 @@ async function checkServiceHealth() {
     }
 }
 
+async function fetchTokenData(address) {
+    try {
+        // Fetch data from Rugcheck API
+        const response = await fetch(`${API_BASE_URL}/analyze/${address}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching token data:', error);
+        return null;
+    }
+}
+
 async function scanToken() {
     hideError();
     const tokenInput = document.getElementById('tokenAddress');
@@ -101,70 +122,26 @@ async function scanToken() {
         // Check if service is available
         const isHealthy = await checkServiceHealth();
         if (!isHealthy) {
-            console.error('Health check failed');
-            throw new Error('Analysis service is currently unavailable. Please try again later.');
+            throw new Error('Service unavailable');
         }
-
-        console.log('Analyzing token:', tokenAddress);
-        console.log('API URL:', `${API_BASE_URL}/api/analyze/${tokenAddress}`);
 
         // Call the analysis endpoint
-        const response = await fetchWithTimeout(`${API_BASE_URL}/api/analyze/${tokenAddress}`);
-        const contentType = response.headers.get('content-type');
+        const response = await fetchWithTimeout(`${API_BASE_URL}/analyze/${tokenAddress}`);
         
-        console.log('Response status:', response.status);
-        console.log('Content type:', contentType);
-
         if (!response.ok) {
-            let errorMessage = 'Failed to analyze token';
-            let errorDetails = '';
-            
-            if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                console.error('Error data:', errorData);
-                errorMessage = errorData.detail || errorMessage;
-            } else {
-                const textError = await response.text();
-                console.error('Error response:', textError);
-                errorDetails = 'Server returned an unexpected response';
-            }
-            
-            throw new Error(`${errorMessage}${errorDetails ? ': ' + errorDetails : ''}`);
-        }
-
-        if (!contentType || !contentType.includes('application/json')) {
-            const textResponse = await response.text();
-            console.error('Invalid content type. Response:', textResponse);
-            throw new Error('Invalid response from server: Unexpected content type');
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to analyze token');
         }
 
         const data = await response.json();
-        console.log('Scraped data:', data);
-
-        // Validate response data
-        if (!data || typeof data !== 'object') {
-            throw new Error('Invalid data received from server');
-        }
-
+        
         // Store the data and navigate
         sessionStorage.setItem('tokenData', JSON.stringify(data));
-        const resultsUrl = `results.html?address=${encodeURIComponent(tokenAddress)}`;
+        window.location.href = `results.html?address=${encodeURIComponent(tokenAddress)}`;
         
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.navigate(resultsUrl);
-        } else {
-            window.location.href = resultsUrl;
-        }
     } catch (error) {
         console.error('Error:', error);
-        if (error.name === 'AbortError') {
-            showError('Request timeout', 'The analysis is taking too long. Please try again.');
-        } else if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
-            showError(
-                'Connection error', 
-                `Cannot connect to the analysis service at ${API_BASE_URL}. Please check your connection and try again.`
-            );
-        } else if (error.message.includes('currently unavailable')) {
+        if (error.message === 'Service unavailable') {
             showError(
                 'Service unavailable',
                 'The analysis service is currently down for maintenance. Please try again in a few minutes.'
@@ -172,7 +149,7 @@ async function scanToken() {
         } else {
             showError(
                 'Analysis failed',
-                `Error: ${error.message}\nPlease try again or contact support if the issue persists.`
+                error.message || 'An unexpected error occurred. Please try again.'
             );
         }
     } finally {

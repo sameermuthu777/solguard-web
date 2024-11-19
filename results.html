@@ -5,182 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="handheldfriendly" content="true">
     <meta name="MobileOptimized" content="320">
-    <title>Token Analysis Results - Solana Guard</title>
+    <title>Token Analysis Results - SolGuardian</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        .results-container {
+        :root {
+            --primary-color: #1a1a1a;
+            --secondary-color: #2a2a2a;
+            --accent-color: #4CAF50;
+            --text-color: #ffffff;
+            --text-secondary: #a0a0a0;
+            --danger-color: #ff4444;
+            --warning-color: #ffbb33;
+            --success-color: #00C851;
+        }
+
+        body {
+            background: var(--primary-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
             padding: 16px;
         }
-        
-        .token-info {
+
+        .card {
             background: var(--secondary-color);
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
+
         .token-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
-        
+
         .token-icon {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
+            background: var(--accent-color);
         }
-        
-        .token-name {
-            font-size: 18px;
-            font-weight: 600;
+
+        .token-info h1 {
             margin: 0;
+            font-size: 24px;
         }
-        
+
         .token-address {
-            font-size: 12px;
-            color: #a0a0a0;
+            color: var(--text-secondary);
+            font-size: 14px;
             word-break: break-all;
         }
-        
-        .analysis-section {
-            background: var(--secondary-color);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
+
+        .security-score {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
         }
-        
-        .section-title {
-            color: var(--primary-color);
-            font-size: 16px;
-            margin: 0 0 12px 0;
-        }
-        
-        .risk-item {
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
             display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            background: conic-gradient(var(--accent-color) var(--score), transparent 0);
         }
-        
-        .risk-item:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
+
+        .market-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
         }
-        
-        .risk-icon {
-            font-size: 16px;
-            min-width: 24px;
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            border-radius: 8px;
             text-align: center;
         }
-        
-        .risk-details {
-            flex: 1;
-        }
-        
-        .risk-title {
+
+        .stat-label {
+            color: var(--text-secondary);
             font-size: 14px;
-            font-weight: 600;
-            margin: 0 0 4px 0;
+            margin-bottom: 8px;
         }
-        
-        .risk-description {
-            font-size: 12px;
-            color: #a0a0a0;
-            margin: 0;
-            line-height: 1.4;
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
         }
-        
-        .loading-container {
+
+        .risk-factors {
+            margin: 20px 0;
+        }
+
+        .risk-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .verification-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .link-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .community-votes {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin: 20px 0;
+        }
+
+        .vote-box {
+            text-align: center;
+        }
+
+        .vote-count {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .vote-label {
+            color: var(--text-secondary);
+        }
+
+        #loadingView {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--primary-color);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 200px;
+            z-index: 1000;
         }
-        
-        .large-spinner {
+
+        .spinner {
             width: 40px;
             height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 4px solid var(--text-secondary);
+            border-top: 4px solid var(--accent-color);
             border-radius: 50%;
-            border-top-color: white;
             animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-        
-        .loading-text {
-            color: #a0a0a0;
-            font-size: 14px;
         }
 
-        .risk-score {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .score-high {
-            background: rgba(255, 68, 68, 0.1);
-            color: #ff4444;
-        }
-
-        .score-medium {
-            background: rgba(255, 193, 7, 0.1);
-            color: #ffc107;
-        }
-
-        .score-low {
-            background: rgba(40, 167, 69, 0.1);
-            color: #28a745;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="loadingView" class="loading-container">
-            <div class="large-spinner"></div>
-            <p class="loading-text">Analyzing token security...</p>
+    <div id="loadingView">
+        <div class="spinner"></div>
+        <p>Analyzing token security...</p>
+    </div>
+
+    <div class="container" id="resultsView" style="display: none;">
+        <div class="card token-overview">
+            <div class="token-header">
+                <img id="tokenIcon" class="token-icon" src="" alt="Token Icon">
+                <div class="token-info">
+                    <h1 id="tokenName">Token Name</h1>
+                    <div class="token-address" id="tokenAddress">Address</div>
+                </div>
+            </div>
         </div>
-        
-        <div id="resultsView" style="display: none;">
-            <div class="token-info">
-                <div class="token-header">
-                    <img id="tokenIcon" src="" alt="Token Icon" class="token-icon">
-                    <div>
-                        <h2 id="tokenName" class="token-name">Token Name</h2>
-                        <p id="tokenAddress" class="token-address">Address</p>
-                    </div>
+
+        <div class="card security-overview">
+            <h2>Security Score</h2>
+            <div class="score-circle">
+                <div class="security-score" id="securityScore">0</div>
+            </div>
+            <div class="risk-factors" id="riskFactors"></div>
+        </div>
+
+        <div class="card market-data">
+            <div class="stat-box">
+                <div class="stat-label">Total Liquidity</div>
+                <div class="stat-value" id="totalLiquidity">$0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">LP Providers</div>
+                <div class="stat-value" id="lpProviders">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Supply</div>
+                <div class="stat-value" id="totalSupply">0</div>
+            </div>
+        </div>
+
+        <div class="card verification-info">
+            <h2>Verification</h2>
+            <div class="verification-links" id="verificationLinks"></div>
+        </div>
+
+        <div class="card community-feedback">
+            <h2>Community Feedback</h2>
+            <div class="community-votes">
+                <div class="vote-box">
+                    <div class="vote-count" id="upvotes">0</div>
+                    <div class="vote-label">Upvotes</div>
                 </div>
-            </div>
-
-            <div id="riskScore" class="risk-score">
-                Risk Score: Analyzing...
-            </div>
-
-            <div class="analysis-section">
-                <h3 class="section-title">Security Analysis</h3>
-                <div id="securityResults">
-                    <!-- Security results will be populated here -->
-                </div>
-            </div>
-
-            <div class="analysis-section">
-                <h3 class="section-title">Contract Analysis</h3>
-                <div id="contractResults">
-                    <!-- Contract analysis results will be populated here -->
+                <div class="vote-box">
+                    <div class="vote-count" id="downvotes">0</div>
+                    <div class="vote-label">Downvotes</div>
                 </div>
             </div>
         </div>
     </div>
+
     <script src="results.js"></script>
 </body>
 </html>
