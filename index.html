@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="handheldfriendly" content="true">
+    <meta name="MobileOptimized" content="320">
+    <title>Solana Guard - Rugcheck Scanner</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <img src="https://rugcheck.xyz/logo.png" alt="Solana Guard Logo" class="logo">
+        <h1>Solana Guard Rugcheck Scanner</h1>
+        <p class="description">
+            Instantly analyze any Solana token for potential risks and security threats.
+            Get comprehensive security analysis powered by Rugcheck.
+        </p>
+
+        <div class="input-group">
+            <input type="text" id="tokenAddress" placeholder="Enter Solana Token Address" 
+                   pattern="[1-9A-HJ-NP-Za-km-z]{32,44}">
+            <button onclick="scanToken()" id="scanButton">
+                <span class="button-text">Scan Token</span>
+                <span class="loading-spinner"></span>
+            </button>
+        </div>
+        <div id="error" class="error"></div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🔍 Deep Analysis</h3>
+                <p>Comprehensive contract analysis and risk assessment</p>
+            </div>
+            <div class="feature">
+                <h3>⚡️ Real-time Data</h3>
+                <p>Live monitoring of liquidity and trading patterns</p>
+            </div>
+            <div class="feature">
+                <h3>🛡️ Security First</h3>
+                <p>Advanced rugpull and scam detection systems</p>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
