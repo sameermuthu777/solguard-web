@@ -8,7 +8,7 @@ if (webapp) {
 // API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8000'
-    : 'https://api.solguardian.net'; // Replace with your actual deployed API URL
+    : window.location.protocol + '//' + window.location.hostname + ':8000'; // Replace with your actual deployed API URL
 const API_TIMEOUT = 30000; // 30 seconds
 
 function showLoading() {
@@ -101,24 +101,41 @@ async function scanToken() {
         // Check if service is available
         const isHealthy = await checkServiceHealth();
         if (!isHealthy) {
+            console.error('Health check failed');
             throw new Error('Analysis service is currently unavailable. Please try again later.');
         }
+
+        console.log('Analyzing token:', tokenAddress);
+        console.log('API URL:', `${API_BASE_URL}/api/analyze/${tokenAddress}`);
 
         // Call the analysis endpoint
         const response = await fetchWithTimeout(`${API_BASE_URL}/api/analyze/${tokenAddress}`);
         const contentType = response.headers.get('content-type');
+        
+        console.log('Response status:', response.status);
+        console.log('Content type:', contentType);
 
         if (!response.ok) {
             let errorMessage = 'Failed to analyze token';
+            let errorDetails = '';
+            
             if (contentType && contentType.includes('application/json')) {
                 const errorData = await response.json();
+                console.error('Error data:', errorData);
                 errorMessage = errorData.detail || errorMessage;
+            } else {
+                const textError = await response.text();
+                console.error('Error response:', textError);
+                errorDetails = 'Server returned an unexpected response';
             }
-            throw new Error(errorMessage);
+            
+            throw new Error(`${errorMessage}${errorDetails ? ': ' + errorDetails : ''}`);
         }
 
         if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Invalid response from server');
+            const textResponse = await response.text();
+            console.error('Invalid content type. Response:', textResponse);
+            throw new Error('Invalid response from server: Unexpected content type');
         }
 
         const data = await response.json();
@@ -142,10 +159,21 @@ async function scanToken() {
         console.error('Error:', error);
         if (error.name === 'AbortError') {
             showError('Request timeout', 'The analysis is taking too long. Please try again.');
-        } else if (error.message === 'Failed to fetch') {
-            showError('Connection error', 'Cannot connect to the analysis service. Please check your connection and try again.');
+        } else if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
+            showError(
+                'Connection error', 
+                `Cannot connect to the analysis service at ${API_BASE_URL}. Please check your connection and try again.`
+            );
+        } else if (error.message.includes('currently unavailable')) {
+            showError(
+                'Service unavailable',
+                'The analysis service is currently down for maintenance. Please try again in a few minutes.'
+            );
         } else {
-            showError('Analysis failed', error.message);
+            showError(
+                'Analysis failed',
+                `Error: ${error.message}\nPlease try again or contact support if the issue persists.`
+            );
         }
     } finally {
         hideLoading();
