@@ -102,33 +102,68 @@ async def scrape_rugcheck(token_address: str) -> Dict[str, Any]:
             
             try:
                 # Extract token info with more flexible selectors
-                token_name = soup.find(['h1', 'div'], string=lambda text: text and ('Token Analysis' in text or token_address in text))
+                token_name = soup.find(['h1', 'div', 'span'], string=lambda text: text and (
+                    'Token Analysis' in text or 
+                    token_address in text or 
+                    'Token Details' in text
+                ))
+                
+                if not token_name:
+                    # Try alternative selectors
+                    token_name = soup.find(['h1', 'div', 'span'], class_=lambda x: x and (
+                        'token' in str(x).lower() or 
+                        'title' in str(x).lower()
+                    ))
+                
                 if token_name:
                     name_text = token_name.text.replace('Token Analysis:', '').strip()
                     data["token_info"] = {
-                        "name": name_text if name_text else "Unknown Token",
+                        "name": name_text if name_text and len(name_text) > 1 else "Unknown Token",
                         "address": token_address
                     }
                 else:
-                    raise HTTPException(status_code=500, detail="Failed to extract token information")
+                    logger.warning(f"Could not find token name for {token_address}, using default")
+                    data["token_info"] = {
+                        "name": "Unknown Token",
+                        "address": token_address
+                    }
                 
                 # Extract risk score with multiple fallback patterns
                 risk_patterns = [
                     lambda s: s.find(['div', 'span'], class_=lambda x: x and 'risk' in x.lower()),
                     lambda s: s.find(string=lambda text: text and 'risk score' in text.lower()),
-                    lambda s: s.find(['div', 'span'], string=lambda text: text and 'risk' in text.lower())
+                    lambda s: s.find(['div', 'span'], string=lambda text: text and 'risk' in text.lower()),
+                    lambda s: s.find(['div', 'span'], string=lambda text: text and any(word in text.lower() for word in ['safe', 'unsafe', 'danger'])),
+                    lambda s: s.find(['div', 'span'], class_=lambda x: x and any(word in str(x).lower() for word in ['safe', 'unsafe', 'danger']))
                 ]
                 
                 risk_score = None
+                risk_text = None
                 for pattern in risk_patterns:
-                    risk_score = pattern(soup)
-                    if risk_score:
-                        data["risk_analysis"]["score"] = risk_score.text.strip()
-                        break
+                    risk_element = pattern(soup)
+                    if risk_element:
+                        risk_text = risk_element.text.strip()
+                        # Try to extract numeric score
+                        numbers = re.findall(r'\d+(?:\.\d+)?', risk_text)
+                        if numbers:
+                            risk_score = numbers[0]
+                            break
+                        # If no numeric score, look for risk indicators
+                        elif any(word in risk_text.lower() for word in ['safe', 'low']):
+                            risk_score = "Low Risk"
+                            break
+                        elif any(word in risk_text.lower() for word in ['unsafe', 'medium']):
+                            risk_score = "Medium Risk"
+                            break
+                        elif any(word in risk_text.lower() for word in ['danger', 'high']):
+                            risk_score = "High Risk"
+                            break
                 
-                if not risk_score:
-                    logger.warning(f"Could not find risk score for token {token_address}")
-                    data["risk_analysis"]["score"] = "Unknown"
+                data["risk_analysis"] = {
+                    "score": risk_score if risk_score else "Unknown",
+                    "raw_text": risk_text if risk_text else "No risk information available",
+                    "last_updated": datetime.now().isoformat()
+                }
                 
                 # Extract security checks with more flexible selectors
                 security_sections = soup.find_all(
